@@ -13,13 +13,14 @@ async def read_cards(image: UploadFile = File(...)):
     for card in cards_read:
         
         try:
+            # cast to int and back to string to remove any leading zeros
             card['card_number'] = int(card["card_number"])
             card['card_number'] = str(card['card_number'])
         except ValueError:
             pass
         
         card_data = get_card_data(card["set_tag"], card["card_number"])
-        card["image"] = card_data["image"]
+        card["card_img"] = card_data["image"]
         card["variants"] = card_data["variants"]
     return {
         "cards": cards_read
