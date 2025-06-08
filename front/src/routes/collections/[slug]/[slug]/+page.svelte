@@ -33,6 +33,6 @@
 
 <div class="height-wo-footer grid-container w-full p-5 grid grid-cols-2 gap-4 overflow-y-auto">
 	{#each cardsDisplay as c}
-		<Card card={c} />
+		<Card card={c} displaySet={true}  />
 	{/each}
 </div>

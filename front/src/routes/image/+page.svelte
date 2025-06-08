@@ -6,8 +6,7 @@
 	let loading = $state(false);
 	let imageUrl: string = $state('');
 
-	// Subscribe to the uploadedFile store
-	const unsubscribe = uploadedFile.subscribe((file) => {
+	uploadedFile.subscribe((file) => {
 		if (file) {
 			// Create a URL for the file to display it
 			imageUrl = URL.createObjectURL(file);
@@ -23,7 +22,6 @@
 	});
 
 	onDestroy(() => {
-		unsubscribe();
 		uploadedFile.set(null);
 	});
 

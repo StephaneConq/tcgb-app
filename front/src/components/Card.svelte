@@ -11,7 +11,7 @@ TODO
 	import { cardsRead } from '../lib/store/cards';
 	import type CardModel from "$lib/models/card";
 
-	const { card } = $props();
+	const { card, displaySet } = $props();
 	const cards = $state(get(cardsRead));
 
 	// Local state for the inputs
@@ -52,12 +52,12 @@ TODO
 	<div class="card-details">
 		<div class="input-group">
 			<label for="set">Set:</label>
-			<input type="text" id="set" bind:value={setName} placeholder="Card set" />
+			<input disabled="{displaySet}" type="text" id="set" bind:value={setName} placeholder="Card set" />
 		</div>
 
 		<div class="input-group">
 			<label for="number">Number:</label>
-			<input type="text" id="number" bind:value={cardNumber} placeholder="Card number" />
+			<input disabled="{displaySet}" type="text" id="number" bind:value={cardNumber} placeholder="Card number" />
 		</div>
 	</div>
 </div>

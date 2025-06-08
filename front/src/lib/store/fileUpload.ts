@@ -8,6 +8,7 @@ export const uploadedFile = writable(null);
 
 export const scanFile = async () => {
     const file = get(uploadedFile);
+    console.log(file);
     if (!file) {
         console.error("No file uploaded");
         return;
@@ -15,7 +16,7 @@ export const scanFile = async () => {
     const formData = new FormData();
     formData.append("image", file);
     const response = await api.post(`/api/cards/read`, formData);
-    const cards = response.data.cards.map((c: Card) => {
+    const cards = response.data.cards.map((c: CardModel) => {
         return {
             ...c,
             selected: true

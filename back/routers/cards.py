@@ -19,6 +19,8 @@ async def read_cards(image: UploadFile = File(...)):
         except ValueError:
             pass
         
+        card['set_tag'] = card.get('set_tag', '').upper()
+
         card_data = get_card_data(card["set_tag"], card["card_number"])
         card["card_img"] = card_data["image"]
         card["variants"] = card_data["variants"]
