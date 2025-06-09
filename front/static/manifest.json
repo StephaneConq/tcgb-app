@@ -1,0 +1,41 @@
+{
+  "name": "TCGB",
+  "short_name": "TCGB",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0c8ed6",
+  "theme_color": "#0c8ed6",
+  "screenshots": [
+    {
+      "src": "/screenshots/Screenshot_20250609_220856_Chrome.jpg",
+      "sizes": "1440x2951",
+      "type": "image/jpg",
+      "label": "Application"
+    },
+    {
+      "src": "/screenshots/Screenshot_20250609_220900_Chrome.jpg",
+      "sizes": "1440x2951",
+      "type": "image/jpg",
+      "label": "Application"
+    },
+    {
+      "src": "/screenshots/Screenshot_20250609_220907_Chrome.jpg",
+      "sizes": "1440x2951",
+      "type": "image/jpg",
+      "label": "Application"
+    }
+  ],
+  "icons": [
+    {
+      "src": "/favicons/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicons/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

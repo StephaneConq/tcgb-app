@@ -41,7 +41,7 @@
 </script>
 
 <div class="p-10 flex flex-col justify-between items-center h-full">
-	<img src={imageUrl} alt="Pokemon cards" />
+	<img src={imageUrl} class="max-h-[60vh]" alt="Pokemon cards" />
 
 	{#if loading}
 		<div class="flex items-center justify-center">

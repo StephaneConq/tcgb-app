@@ -29,4 +29,10 @@
 	<span class="iconify" data-icon="mdi-camera"></span>
 </button>
 
-<input type="file" accept="image/*" class="hidden" onchange={handleFileChange} />
+<input 
+    type="file" 
+    accept="image/*" 
+    capture="environment" 
+    class="hidden" 
+    onchange={handleFileChange} 
+/>

@@ -38,6 +38,7 @@
 			currentPath = to.url.pathname;
 		}
 	});
+
 </script>
 
 <main
