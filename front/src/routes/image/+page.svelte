@@ -31,6 +31,7 @@
 			() => {
 				loading = false;
                 goto('/scan');
+				uploadedFile.set(null);
 			},
 			() => {
 				loading = false;

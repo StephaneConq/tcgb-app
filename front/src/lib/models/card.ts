@@ -1,5 +1,6 @@
 export default interface CardModel {
-    set_tag: string;
+    set_id: string;
+    _id?: string;
     card_number: string;
     card_name: string;
     image: string;

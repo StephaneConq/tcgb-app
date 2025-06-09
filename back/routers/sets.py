@@ -1,7 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from fastapi import APIRouter
-from controllers.sets_controller import get_all_sets, get_cards_in_set
+from controllers.sets_controller import get_all_sets, fetch_cards
+from services.auth import get_current_user_email
 
 router = APIRouter()
 
@@ -12,7 +13,7 @@ async def get_sets(licence: str = None):
     }
 
 @router.get('/{serie_doc_id}/cards')
-async def get_cards(serie_doc_id: str):
+async def get_cards(serie_doc_id: str, email: str = Depends(get_current_user_email)):
     return {
-        "cards": get_cards_in_set(serie_doc_id)
+        "cards": fetch_cards(serie_doc_id, email) 
     }

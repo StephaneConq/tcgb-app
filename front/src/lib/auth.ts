@@ -25,11 +25,16 @@ export const auth = browser ? getAuth(app) : null;
 export const user = writable<User | null>(null);
 export const loading = writable(true);
 
+let successCallback: any = null;
+export const authPromise = new Promise((resolve) => {
+  successCallback = resolve;
+});
+
 if (browser) {
   onAuthStateChanged(auth, (userData: User | null) => {    
     user.set(userData);
     console.log('user', get(user));
-    
+    successCallback();
     loading.set(false);
   });
 }

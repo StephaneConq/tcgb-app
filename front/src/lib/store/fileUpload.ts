@@ -8,7 +8,6 @@ export const uploadedFile = writable(null);
 
 export const scanFile = async () => {
     const file = get(uploadedFile);
-    console.log(file);
     if (!file) {
         console.error("No file uploaded");
         return;

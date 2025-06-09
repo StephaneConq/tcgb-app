@@ -135,6 +135,7 @@ class FirestoreService:
                          .collection(sub_collection).document(sub_document_id)
         doc = doc_ref.get()
         if doc.exists:
+            test = doc.to_dict().get('card_ref').get().to_dict()
             return doc.to_dict()
         return None
 
@@ -280,7 +281,7 @@ class FirestoreService:
 
     def query_sub_collection(self, collection_name: str, document_id: str,
                              sub_collection: str, filters: List[tuple] = None,
-                             order_by: str = None, limit: int = None) -> List[Dict[str, Any]]:
+                             order_by: str = None, limit: int = None, get_ref: bool = False) -> List[Dict[str, Any]]:
         """
         Query documents in a sub-collection.
 
@@ -308,7 +309,7 @@ class FirestoreService:
         if limit:
             query = query.limit(limit)
 
-        return [{**doc.to_dict(), '_id': doc.id} for doc in query.stream()]
+        return [{**doc.to_dict(), '_id': doc.id, 'ref': doc.reference} for doc in query.stream()]
 
     def get_collection_ref(self, collection_name: str):
         """
@@ -321,3 +322,33 @@ class FirestoreService:
             Firestore reference to the collection
         """
         return self.db.collection(collection_name)
+
+    def get_document_ref_by_path(self, ref_path: str) -> Optional[Dict[str, Any]]:
+        """
+        Retrieve a document by its reference path.
+        
+        Args:
+            ref_path: Full path to the document, e.g. "series/IaSmT9uI8EJseYJDAtPB/cards/Qf93tBIlH4kzSp5QlAkW"
+            
+        Returns:
+            Document data as dictionary or None if not found
+        """
+        # Split the path into components
+        path_components = ref_path.split('/')
+        
+        # Check if we have a valid path (must have at least collection/document)
+        if len(path_components) < 2 or len(path_components) % 2 != 0:
+            raise ValueError(f"Invalid reference path: {ref_path}. Path must have even number of segments.")
+        
+        # Build the document reference
+        doc_ref = self.db
+        for i in range(0, len(path_components), 2):
+            collection_name = path_components[i]
+            document_id = path_components[i+1]
+            doc_ref = doc_ref.collection(collection_name).document(document_id)
+        
+        # Get the document
+        doc = doc_ref.get()
+        if doc.exists:
+            return doc.reference
+        return None

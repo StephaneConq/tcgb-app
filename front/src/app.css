@@ -2,6 +2,6 @@
 @plugin '@tailwindcss/typography';
 
 
-.height-wo-footer { 
+.height-wo-footer {
     height: calc(100vh - 64px - 24px - 40px);
 }

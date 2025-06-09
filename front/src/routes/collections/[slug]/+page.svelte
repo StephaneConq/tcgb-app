@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
 	import type Serie from '$lib/models/serie.js';
 	import { fetchSeries } from '$lib/store/series.js';
+	import Loading from '../../../components/Loading.svelte';
 	let { data } = $props();
 
 	// If your load function passes the params
@@ -34,13 +35,12 @@
 	function filterSeries(searchValue: string) {
 		return series.filter((serie) => serie.set_id.toLowerCase().includes(searchValue.toLowerCase()));
 	}
-
 </script>
 
+
+
 {#if loading}
-	<div class="loading-container">
-		<div class="progress-bar"></div>
-	</div>
+	<Loading />
 {:else}
 	<div class="height-wo-footer flex flex-col items-center overflow-y-auto p-6">
 		<div class="search-container mb-6 w-full max-w-md">
@@ -74,7 +74,10 @@
 
 		<div>
 			{#each searchValue ? filterSeries(searchValue) : series as serie}
-				<button onclick="{() => goto(`/collections/${slug}/${serie._id}`)}" class="flex flex-col justify-around bg-white m-6 p-6 rounded-lg">
+				<button
+					onclick={() => goto(`/collections/${slug}/${serie._id}`)}
+					class="flex flex-col justify-around bg-white m-6 p-6 rounded-lg"
+				>
 					<img src={serie.serie_logo} alt="{serie.serie_name} logo" class="my-3" />
 					<p class="flex flex-row items-center justify-between gap-3">
 						<img src={serie.symbol_img} alt="{serie.symbol_img} logo" class="max-w-[60px]" />
@@ -85,48 +88,10 @@
 		</div>
 	</div>
 {/if}
+
 <style>
-    .loading-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 2rem;
-    }
-
-    .progress-bar {
-        width: 100%;
-        max-width: 400px;
-        height: 4px;
-        background-color: #f0f0f0;
-        border-radius: 4px;
-        overflow: hidden;
-        position: relative;
-    }
-
-    .progress-bar::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        height: 100%;
-        width: 30%;
-        background-color: #2865a1;
-        animation: indeterminate 1.5s infinite ease-in-out;
-        border-radius: 4px;
-    }
-
-    @keyframes indeterminate {
-        0% {
-            left: -30%;
-        }
-        100% {
-            left: 100%;
-        }
-    }
-    
-    /* Add this style for white placeholder text */
-    input::placeholder {
-        color: white;
-    }
+	/* Add this style for white placeholder text */
+	input::placeholder {
+		color: white;
+	}
 </style>

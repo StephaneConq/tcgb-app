@@ -19,11 +19,28 @@ async def read_cards(image: UploadFile = File(...)):
         except ValueError:
             pass
         
-        card['set_tag'] = card.get('set_tag', '').upper()
+        card['set_id'] = card.get('set_id', '').upper()
 
-        card_data = get_card_data(card["set_tag"], card["card_number"])
+        card_data = get_card_data(card["set_id"], card["card_number"])
         card["card_img"] = card_data["image"]
         card["variants"] = card_data["variants"]
     return {
         "cards": cards_read
+    }
+    
+@router.get('')
+async def get_card(card_number: str, set_id: str):
+    """
+    Get a card by its set id and card number
+    """
+    card = {
+        "card_number": card_number,
+        "set_id": set_id
+    }
+    
+    card_data = get_card_data(card["set_id"], card["card_number"])
+    card["card_img"] = card_data["image"]
+    card["variants"] = card_data["variants"]
+    return {
+        "card": card
     }

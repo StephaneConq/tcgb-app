@@ -1,4 +1,4 @@
-import { user } from '$lib/auth';
+import { user, authPromise } from '$lib/auth';
 import { get } from 'svelte/store';
 import axios from 'axios';
 
@@ -9,7 +9,8 @@ const api = axios.create({
 
 // Request interceptor - adds auth token to requests
 api.interceptors.request.use(
-  config => {
+  async config => {
+    await authPromise;
     const token = get(user)?.accessToken;
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;

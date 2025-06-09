@@ -16,6 +16,7 @@
 			const file = input.files[0];
 			uploadedFile.set(file as any);
             goto('/image')
+			input.files = null;
 		}
 	}
 </script>

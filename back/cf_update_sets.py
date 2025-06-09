@@ -79,7 +79,7 @@ def get_cards(serie):
             'card_name': card_soup.get('alt'),
             'card_img': card_soup.get('src'),
             'card_number': card_number,
-            'set_tag': serie.get('set_id')
+            'set_id': serie.get('set_id')
         })
     return serie, cards
 
