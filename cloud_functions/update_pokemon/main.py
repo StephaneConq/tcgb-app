@@ -3,6 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
 from services.firestore import FirestoreService
+from functions_framework import http
 
 
 def get_all_sets_pokemon():
@@ -83,8 +84,8 @@ def get_cards(serie):
         })
     return serie, cards
 
-
-def main():
+@http
+def main(request):
     firestore_service = FirestoreService()
     series = get_all_sets_pokemon()
 
@@ -116,5 +117,4 @@ def main():
                 print(f"Cards created: {len(cards)}")
         print(f"{i + 1}/{len(series)}: {serie} done")
 
-
-main()
+    return "Series created"

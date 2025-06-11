@@ -1,0 +1,12 @@
+[project]
+name = "update-pokemon"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "beautifulsoup4>=4.13.4",
+    "functions-framework>=3.8.3",
+    "google-cloud-firestore>=2.21.0",
+    "requests>=2.32.4",
+]
