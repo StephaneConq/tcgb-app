@@ -9,10 +9,7 @@
 	import { goto } from '$app/navigation';
 
 	// Define props with $bindable directly inside $props()
-	let {
-		card = $bindable(),
-		displaySet = false,
-	} = $props<{
+	let { card = $bindable(), displaySet = false } = $props<{
 		card: CardModel;
 		displaySet?: boolean;
 	}>();
@@ -99,7 +96,7 @@
 	};
 
 	let timeoutId: ReturnType<typeof setTimeout> | null = $state(null);
-	const handleParamChange = () => {		
+	const handleParamChange = () => {
 		if (timeoutId) {
 			clearTimeout(timeoutId);
 		}
@@ -113,12 +110,12 @@
 					(cardFetched) => {
 						cards = cards.map((c) => {
 							if (c._id === card._id) {
-								return {...cardFetched, selected: card.selected};
+								return { ...cardFetched, selected: card.selected };
 							}
 							return c;
 						});
-						card = {...cardFetched, selected: card.selected};
-						cardsRead.set(cards);						
+						card = { ...cardFetched, selected: card.selected };
+						cardsRead.set(cards);
 					},
 					(error) => {
 						console.error('Error getting card:', error);
@@ -140,9 +137,17 @@
 				});
 		}, 1000);
 	};
+
+	// Add this new state variable to track visibility of inputs
+	let showInputs = $state(false);
+
+	// Add this function to toggle input visibility
+	const toggleInputs = () => {
+		showInputs = !showInputs;
+	};
 </script>
 
-<div class="card-container {!selected && 'disabled'} {!displaySet && 'h-fit'}">
+<div class="card-container h-min {!selected && 'disabled'} {!displaySet && 'h-fit'}">
 	<button
 		class="card-image"
 		onclick={() => {
@@ -157,30 +162,44 @@
 	</button>
 
 	<div class="card-details">
-		<div class="input-group">
-			<label for="set">Set:</label>
-			<input
-				disabled={displaySet}
-				type="text"
-				id="set"
-				bind:value={setId}
-				onkeydown={handleParamChange}
-				placeholder="Card set"
-			/>
+		<div class="details-header">
+			<button
+				class="toggle-button w-full flex flex-row justify-between items-center"
+				onclick={toggleInputs}
+				aria-label={showInputs ? 'Cacher' : 'Afficher'}
+			>
+				<h4 class="details-title">Détails</h4>
+				<span class="iconify" data-icon={showInputs ? 'mdi-chevron-up' : 'mdi-chevron-down'}></span>
+			</button>
 		</div>
 
-		<div class="input-group">
-			<label for="number">Number:</label>
-			<input
-				disabled={displaySet}
-				type="text"
-				id="number"
-				bind:value={cardNumber}
-				onkeydown={handleParamChange}
-				placeholder="Card number"
-			/>
-		</div>
+		{#if showInputs}
+			<div class="input-group">
+				<label for="set">Set:</label>
+				<input
+					disabled={displaySet}
+					type="text"
+					id="set"
+					bind:value={setId}
+					onkeydown={handleParamChange}
+					placeholder="Card set"
+				/>
+			</div>
+
+			<div class="input-group">
+				<label for="number">Number:</label>
+				<input
+					disabled={displaySet}
+					type="text"
+					id="number"
+					bind:value={cardNumber}
+					onkeydown={handleParamChange}
+					placeholder="Card number"
+				/>
+			</div>
+		{/if}
 	</div>
+
 	{#if displaySet}
 		<div class="actions-container">
 			{#if loading}
@@ -217,14 +236,11 @@
 				</div>
 			{/if}
 		</div>
-	{:else}
-		{#if loading}
-			<div class="actions flex flex-row justify-center items-center">
-				<LoadingSpinner />
-			</div>
-		{/if}
+	{:else if loading}
+		<div class="actions flex flex-row justify-center items-center">
+			<LoadingSpinner />
+		</div>
 	{/if}
-
 </div>
 
 <style>
@@ -294,5 +310,33 @@
 	.actions-container {
 		margin-top: auto; /* Push the actions to the bottom */
 		min-height: 40px; /* Reserve space even when actions aren't displayed */
+	}
+
+	/* Add these new styles */
+	.details-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 8px;
+	}
+
+	.details-title {
+		font-size: 0.9rem;
+		font-weight: 600;
+		margin: 0;
+		color: #333;
+	}
+
+	.toggle-button {
+		background: none;
+		border: none;
+		cursor: pointer;
+		color: #555;
+		padding: 4px;
+		border-radius: 4px;
+	}
+
+	.toggle-button:hover {
+		background-color: #f0f0f0;
 	}
 </style>

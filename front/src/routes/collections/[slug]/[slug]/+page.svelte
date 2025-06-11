@@ -12,6 +12,9 @@
 	const slug = data.slug;
 	let cardsDisplay: CardModel[] = $state([]);
 	let loading = $state(true);
+	let currentSort = $state<object>({
+		'number': 'asc'
+	});
 
 	fetchCards(slug)
 		.then((cards) => {
@@ -32,14 +35,43 @@
 			loading = false;
 		});
 
+	function handleSort(criteria: string) {
+		currentSort[criteria] = currentSort[criteria] === 'asc' ? 'desc' : 'asc';
+		sort();
+	}
+
+	function sort() {
+		cardsDisplay.sort((a, b) => {
+			const aNumber = a?.int_number ?? 0;
+			const bNumber = b?.int_number ?? 0;
+			
+			if (currentSort['number'] === 'asc') {
+				return aNumber - bNumber;
+			} else {
+				return bNumber - aNumber;
+			}
+		});
+	}
 </script>
 
 {#if loading}
 	<Loading />
 {:else}
-	<div class="height-wo-footer grid-container w-full p-5 grid grid-cols-2 gap-4 overflow-y-auto">
-		{#each cardsDisplay as c, i (c._id)}
-			<Card bind:card={cardsDisplay[i]} displaySet={true} />
-		{/each}
+	<div class="height-wo-footer w-full p-5 gap-4 flex flex-col">
+		<div class="h-min flex flex-row justify-start items-center gap-3">
+			<button
+				onclick={() => handleSort('number')}
+				class="bg-[#2865a1] p-3 rounded-lg text-white font-bold"
+			>
+				<span class="mr-3">Numéro</span>
+				{currentSort.number === 'asc' ? '▼' : '▲'}
+			</button>
+		</div>
+
+		<div class="grid-container w-full grid grid-cols-2 gap-4 overflow-y-auto">
+			{#each cardsDisplay as c, i (c._id)}
+				<Card bind:card={cardsDisplay[i]} displaySet={true} />
+			{/each}
+		</div>
 	</div>
 {/if}

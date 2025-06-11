@@ -9,4 +9,5 @@ export default interface CardModel {
         product_id: string;
     }[];
     selected?: boolean;
+    int_number?: number;
 }
