@@ -27,6 +27,10 @@
 
 	async function signInWithGoogle() {
 		if (!auth || !provider) return;
+		console.log('auth', auth);
+		console.log('provider', provider);
+		
+		
 		try {
 			loading = true;
 			error = null;

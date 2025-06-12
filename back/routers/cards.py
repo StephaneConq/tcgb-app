@@ -20,10 +20,13 @@ async def read_cards(image: UploadFile = File(...)):
             pass
         
         card['set_id'] = card.get('set_id', '').upper()
-
-        card_data = get_card_data(card["set_id"], card["card_number"])
+        if card.licence == 'pokemon':
+            card_data = get_card_data(card["set_id"], card["card_number"])
+        else:
+            pass
+        
         card["card_img"] = card_data["image"]
-        card["variants"] = card_data["variants"]
+        card["variants"] = card_data.get('variants', [])
     return {
         "cards": cards_read
     }
