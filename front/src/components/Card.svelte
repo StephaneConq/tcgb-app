@@ -8,57 +8,45 @@
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 
-	// Define props with $bindable directly inside $props()
+	// Props definition
 	let { card = $bindable(), displaySet = false } = $props<{
 		card: CardModel;
 		displaySet?: boolean;
 	}>();
 
+	// State variables
 	let cards = $state(get(cardsRead));
 	let loading = $state(false);
 	let cardIndex = $state(0);
-	// Local state for the inputs
 	let setId = $state(card.set_id || '');
 	let cardNumber = $state(card.card_number || '');
+	let showInputs = $state(false);
+	let timeoutId: ReturnType<typeof setTimeout> | null = $state(null);
 
+	// Initialize card on component load and when card changes
 	$effect(() => {
+		initializeCard();
+	});
+
+	function initializeCard() {
 		if (card.card_versions) {
 			card.selectedCard = card.card_versions[cardIndex];
 		} else {
 			card.selectedCard = card;
 		}
-		// Only initialize the selected state if it hasn't been set by user interaction
+		
 		if (card.selected === undefined) {
 			card.selected = !!!card.selectedCard.count;
 		}
 		updateStoreCards();
-	});
+	}
 
-	const handleCardSwitch = (direction: 'previous' | 'next') => {
-		if (cardIndex === 0 && direction === 'previous') {
-			cardIndex = card.card_versions.length - 1;
-		} else if (cardIndex === card.card_versions.length - 1 && direction === 'next') {
-			cardIndex = 0;
-		} else {
-			if (direction === 'previous') {
-				cardIndex--;
-			} else if (direction === 'next') {
-				cardIndex++;
-			}
-		}
-
-		card.selectedCard = card.card_versions[cardIndex];
-		updateStoreCards();
-	};
-
-	const updateStoreCards = () => {
-		// Update the card in the cardsRead store
+	function updateStoreCards() {
 		const updatedCards = get(cardsRead).map((c: CardModel) => {
 			if (c._id === card._id) {
 				return {
 					...c,
 					selectedCard: card.selectedCard,
-					// Store the selected card index so we know which version to save
 					selectedCardIndex: cardIndex,
 					selected: card.selected
 				};
@@ -67,126 +55,105 @@
 		});
 
 		cardsRead.set(updatedCards);
-	};
+	}
 
-	// update cards in store
-	const handleCheck = () => {
+	function handleCardSwitch(direction: 'previous' | 'next') {
+		const length = card.card_versions.length;
+		
+		if (direction === 'previous') {
+			cardIndex = cardIndex === 0 ? length - 1 : cardIndex - 1;
+		} else {
+			cardIndex = cardIndex === length - 1 ? 0 : cardIndex + 1;
+		}
+
+		card.selectedCard = card.card_versions[cardIndex];
+		updateStoreCards();
+	}
+
+	function handleCheck() {
 		if (displaySet) return;
 		card.selected = !card.selected;
 		updateStoreCards();
-	};
+	}
 
-	const handleCardAdd = () => {
+	function handleError(error: any) {
+		console.error('Error:', error);
+		if (error.response?.status === 401 && browser) {
+			console.log('Unauthorized access detected. Redirecting to login...');
+			goto('/login');
+		}
+	}
+
+	function handleCardAdd() {
 		loading = true;
-		saveCards([card])
-			.then(
-				() => {
-					addToast('Carte ajoutée', 'success');
-					card.selectedCard.count = (card.selectedCard.count || 0) + 1;
-				},
-				(error) => {
-					console.error('Error saving cards:', error);
-					if (error.response && error.response.status === 401) {
-						console.log('Unauthorized access detected. Redirecting to login...');
-
-						// Redirect to login page
-						if (browser) {
-							goto('/login');
-						}
-					}
-				}
-			)
+		saveCards([card.selectedCard])
+			.then(() => {
+				addToast('Carte ajoutée', 'success');
+				card.selectedCard.count = (card.selectedCard.count || 0) + 1;
+			})
+			.catch(handleError)
 			.finally(() => {
 				loading = false;
 			});
-	};
+	}
 
-	const handleCardRemove = () => {
+	function handleCardRemove() {
 		if (card.selectedCard.count === 1) {
 			const res = confirm('Supprimer cette carte de la collection ?');
 			if (!res) return;
 		}
+		
 		loading = true;
 		removeCard(card.ref)
-			.then(
-				() => {
-					addToast('Carte supprimée', 'success');
-					card.selectedCard.count = (card.selectedCard.count || 0) - 1;
-					if (card.selectedCard.count === 0) {
-						card.selected = false;
-					}
-				},
-				(error) => {
-					console.error('Error saving cards:', error);
-					if (error.response && error.response.status === 401) {
-						console.log('Unauthorized access detected. Redirecting to login...');
-
-						// Redirect to login page
-						if (browser) {
-							goto('/login');
-						}
-					}
+			.then(() => {
+				addToast('Carte supprimée', 'success');
+				card.selectedCard.count = (card.selectedCard.count || 0) - 1;
+				if (card.selectedCard.count === 0) {
+					card.selected = false;
 				}
-			)
+			})
+			.catch(handleError)
 			.finally(() => {
 				loading = false;
 			});
-	};
+	}
 
-	let timeoutId: ReturnType<typeof setTimeout> | null = $state(null);
-	const handleParamChange = () => {
-		if (timeoutId) {
-			clearTimeout(timeoutId);
-		}
+	function handleParamChange() {
+		if (timeoutId) clearTimeout(timeoutId);
 
 		timeoutId = setTimeout(() => {
 			loading = true;
 			cardNumber = cardNumber.toUpperCase();
 			setId = setId.toUpperCase();
+			
 			getCard(cardNumber, setId)
-				.then(
-					(cardFetched) => {
-						cards = cards.map((c) => {
-							if (c._id === card._id) {
-								return { ...cardFetched, selected: card.selected };
-							}
-							return c;
-						});
-						card = { ...cardFetched, selected: card.selected };
-						cardsRead.set(cards);
-					},
-					(error) => {
-						console.error('Error getting card:', error);
-						addToast('Une erreur a eu lieu, merci de changer les paramètres de la carte', 'error');
-						setId = card.set_id;
-						cardNumber = card.card_number;
-						if (error.response && error.response.status === 401) {
-							console.log('Unauthorized access detected. Redirecting to login...');
-
-							// Redirect to login page
-							if (browser) {
-								goto('/login');
-							}
+				.then((cardFetched) => {
+					cards = cards.map((c) => {
+						if (c._id === card._id) {
+							return { ...cardFetched, selected: card.selected };
 						}
-					}
-				)
+						return c;
+					});
+					card = { ...cardFetched, selected: card.selected };
+					cardsRead.set(cards);
+				})
+				.catch((error) => {
+					console.error('Error getting card:', error);
+					addToast('Une erreur a eu lieu, merci de changer les paramètres de la carte', 'error');
+					setId = card.set_id;
+					cardNumber = card.card_number;
+					handleError(error);
+				})
 				.finally(() => {
 					loading = false;
 				});
 		}, 1000);
-	};
-
-	// Add this new state variable to track visibility of inputs
-	let showInputs = $state(false);
-
-	// Add this function to toggle input visibility
-	const toggleInputs = () => {
-		showInputs = !showInputs;
-	};
+	}
 </script>
 
 {#if card.selectedCard}
 	<section class="flex flex-col justify-center items-center gap-2">
+		<!-- Navigation arrows for card versions -->
 		{#if card.card_versions && card.card_versions.length > 1}
 			<button
 				onclick={() => handleCardSwitch('previous')}
@@ -196,17 +163,16 @@
 				<span class="iconify" data-icon="mdi-arrow-up-drop-circle"></span>
 			</button>
 		{/if}
+		
 		<div class="card-wrapper">
+			<!-- Owned indicator -->
 			{#if card.selectedCard.count > 0 && !displaySet}
 				<img src="icons/sac-de-courses.svg" alt="Owned icon" class="owned-icon" />
 			{/if}
+			
 			<div class="card-container glass-bg {!card.selected && !displaySet && 'disabled'}">
-				<button
-					class="card-image"
-					onclick={() => {
-						handleCheck();
-					}}
-				>
+				<!-- Card image -->
+				<button class="card-image" onclick={handleCheck}>
 					{#if card.selectedCard.card_img}
 						<img src={card.selectedCard.card_img} alt="Card illustration" />
 					{:else}
@@ -214,16 +180,16 @@
 					{/if}
 				</button>
 
+				<!-- Card details section -->
 				<div class="card-details">
 					<div class="details-header">
 						<button
 							class="toggle-button w-full flex flex-row justify-between items-center"
-							onclick={toggleInputs}
+							onclick={() => showInputs = !showInputs}
 							aria-label={showInputs ? 'Cacher' : 'Afficher'}
 						>
 							<h4 class="details-title text-white">Détails</h4>
-							<span class="iconify" data-icon={showInputs ? 'mdi-chevron-up' : 'mdi-chevron-down'}
-							></span>
+							<span class="iconify" data-icon={showInputs ? 'mdi-chevron-up' : 'mdi-chevron-down'}></span>
 						</button>
 					</div>
 
@@ -256,8 +222,9 @@
 					{/if}
 				</div>
 
-				<div class="actions-container flex-grow">
-					{#if displaySet}
+				<!-- Actions for collection management -->
+				{#if displaySet}
+					<div class="actions-container flex-grow">
 						{#if loading}
 							<div class="actions flex flex-row justify-center items-center">
 								<LoadingSpinner />
@@ -281,6 +248,7 @@
 									</button>
 
 									<span class="text-center text-white">{card.selectedCard.count}</span>
+									
 									<button
 										onclick={handleCardAdd}
 										class="bg-[#2865a1] hover:bg-blue-700 text-white font-bold p-3 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200"
@@ -291,12 +259,8 @@
 								{/if}
 							</div>
 						{/if}
-					{:else if loading}
-						<div class="actions flex flex-row justify-center items-center">
-							<LoadingSpinner />
-						</div>
-					{/if}
-				</div>
+					</div>
+				{/if}
 			</div>
 		</div>
 
@@ -319,24 +283,23 @@
 		flex-direction: column;
 		gap: 10px;
 		width: 100%;
-		height: 100%; /* Make sure it takes full height */
+		height: 100%;
 	}
 
-	/* Add this to your existing styles */
 	.card-wrapper {
 		position: relative;
 		width: 100%;
-		min-height: 350px;
+		min-height: 300px;
 		display: flex;
 		flex-direction: column;
 	}
 
 	.actions-container {
-		margin-top: auto; /* Push the actions to the bottom */
-		min-height: 40px; /* Reserve space even when actions aren't displayed */
+		margin-top: auto;
+		min-height: 40px;
 		display: flex;
 		flex-direction: column;
-		justify-content: flex-end; /* Align content to the bottom */
+		justify-content: flex-end;
 	}
 
 	.card-container.disabled {
@@ -390,7 +353,6 @@
 		font-size: 0.9rem;
 	}
 
-	/* Add these new styles */
 	.details-header {
 		display: flex;
 		justify-content: space-between;

@@ -4,6 +4,7 @@ export default interface CardModel {
     card_number: string;
     card_name: string;
     image: string;
+    ref?: string;
     variants: {
         number: string;
         product_id: string;

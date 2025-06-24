@@ -20,7 +20,7 @@ CARD_DETECTION_PROMPT = """
 
   * **Card Number (Required):** The specific identifier of the card within its set. The format and location depend on the license.
 
-      * **pokemon:** The collector number, usually the first part of a fraction (e.g., `78` from `078/159`). Located next to the Set ID at the bottom left.
+      * **pokemon:** The collector number, usually the first part of a fraction (e.g., `78` from `078/159`). Located next to the Set ID at the bottom left. If found, only return the first part of the fraction (For example, "78" if the full number is "078/159").
       * **one piece:** The full alphanumeric code found in the bottom right corner. This code includes the set identifier (e.g., `OP08-001`).
 
   * **Card Name (Optional, for verification):** The official name of the character, event, or item.
@@ -32,7 +32,7 @@ CARD_DETECTION_PROMPT = """
 
 **2. Output Format:**
 
-Provide the extracted information in a structured JSON format.
+Provide the extracted information in a structured JSON format. You will only return the JSON data, with no text or explanations.
 
 ```json
 {
@@ -47,7 +47,6 @@ Provide the extracted information in a structured JSON format.
   * **`set_id`**: The extracted set id. If not found, use `null`.
   * **`card_number`**: The extracted card number. For one piece, this is the full code. If not found, use `null`.
   * **`card_name`**: The extracted card name. If not found, use `null`.
-
 -----
 
 **3. Instructions for Extraction:**
@@ -104,3 +103,24 @@ Provide the extracted information in a structured JSON format.
 ```
 
 """
+
+RESPONSE_SCHEMA = {
+    "type": "ARRAY",
+    "items": {
+        "type": "OBJECT",
+        "properties": {
+            "set_id": {
+                "type": "STRING"
+            },
+            "card_number": {
+                "type": "STRING"
+            },
+            "card_name": {
+                "type": "STRING"
+            },
+            "licence": {
+                "type": "STRING"
+            }
+        }
+    }
+}

@@ -26,7 +26,8 @@ async def read_cards(image: UploadFile = File(...), email: str = Depends(get_cur
     for card in cards_read:
         try:
             # cast to int and back to string to remove any leading zeros
-            card['card_number'] = str(int(card.get("card_number", "0")))
+            card['card_number'] = int(card["card_number"])
+            card['card_number'] = str(card['card_number'])
         except ValueError:
             pass
         card['set_id'] = card.get('set_id', '').upper()

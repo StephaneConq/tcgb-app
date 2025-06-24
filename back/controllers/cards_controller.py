@@ -4,7 +4,7 @@ from google import genai
 from google.genai import types
 from google.auth import default
 
-from config import CARD_DETECTION_PROMPT
+from config import CARD_DETECTION_PROMPT, RESPONSE_SCHEMA
 from models.card import Cards
 from services.firestore import FirestoreService
 
@@ -16,6 +16,7 @@ client = genai.Client(
     location="global",
 )
 
+
 def generate(image: UploadFile) -> Cards:
 
     msg1_image1 = types.Part.from_bytes(
@@ -24,7 +25,7 @@ def generate(image: UploadFile) -> Cards:
     )
     si_text1 = CARD_DETECTION_PROMPT
 
-    model = "gemini-2.5-pro-preview-06-05"
+    model = "gemini-2.5-pro"
     contents = [
         types.Content(
             role="user",
@@ -55,11 +56,10 @@ def generate(image: UploadFile) -> Cards:
             threshold="OFF"
         )],
         response_mime_type="application/json",
-        response_schema={"type": "ARRAY", "items": {"type": "OBJECT", "properties": {"set_id": {
-            "type": "STRING"}, "card_number": {"type": "STRING"}, "card_name": {"type": "STRING"}, "licence": {"type": "STRING"}}}},
+        response_schema=RESPONSE_SCHEMA,
         system_instruction=[types.Part.from_text(text=si_text1)],
     )
-    
+
     response = client.models.generate_content(
         model=model,
         contents=contents,
@@ -70,11 +70,10 @@ def generate(image: UploadFile) -> Cards:
     return json.loads(data)
 
 
-def find_card_in_firestore(card_number, set_id, firestore_service = None, cache_series = {}):
+def find_card_in_firestore(card_number, set_id, firestore_service=None, cache_series={}):
     if not firestore_service:
         firestore_service = FirestoreService()
-        
-    
+
     if set_id in cache_series:
         set_doc = {
             "_id": cache_series[set_id]
@@ -89,10 +88,10 @@ def find_card_in_firestore(card_number, set_id, firestore_service = None, cache_
         if not set_doc:
             print('set not')
             return None, cache_series
-        
+
         set_doc = set_doc[0]
         cache_series[set_id] = set_doc.get('_id')
-    
+
     card_data = firestore_service.query_sub_collection(
         "series",
         set_doc.get('_id'),
@@ -104,5 +103,5 @@ def find_card_in_firestore(card_number, set_id, firestore_service = None, cache_
     if not card_data:
         print("card not found")
         return None, cache_series
-    
+
     return card_data, cache_series
