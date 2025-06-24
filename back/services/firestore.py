@@ -10,6 +10,57 @@ class FirestoreService:
         self.db = firestore.Client(
             database="tcgb-db"
         )
+    
+    def batch_query_documents(self, collection_name: str, filter_groups: List[List[tuple]], 
+                          order_by: str = None, direction: str = "ASCENDING", limit: int = None) -> List[Dict[str, Any]]:
+        """
+        Execute multiple queries with different filter conditions and combine the results.
+        This allows for implementing "OR" logic across different filter groups.
+
+        Args:
+            collection_name: Name of the collection to query
+            filter_groups: List of filter groups, where each group is a list of filter tuples (field, operator, value)
+                        Each filter group is executed as a separate query with AND logic within the group
+                        Results from all groups are combined (OR logic between groups)
+            order_by: Field to order results by (applied after combining results)
+            direction: Direction to order results ("ASCENDING" or "DESCENDING")
+            limit: Maximum number of results in the final combined result
+
+        Returns:
+            List of document dictionaries matching any of the filter groups
+        """
+        all_results = []
+        seen_ids = set()  # To track duplicate documents
+
+        # Execute each query separately
+        for filters in filter_groups:
+            query = self.db.collection(collection_name)
+            
+            # Apply filters for this query (AND logic within a filter group)
+            if filters:
+                for field, op, value in filters:
+                    query = query.where(filter=FieldFilter(field, op, value))
+            
+            # Get results for this query
+            query_results = [{**doc.to_dict(), '_id': doc.id, 'ref': doc.reference} for doc in query.stream()]
+            
+            # Add unique results to the combined results
+            for result in query_results:
+                if result['_id'] not in seen_ids:
+                    all_results.append(result)
+                    seen_ids.add(result['_id'])
+        
+        # Sort the combined results if order_by is specified
+        if order_by and all_results:
+            reverse = direction.upper() == "DESCENDING"
+            all_results.sort(key=lambda x: x.get(order_by, ''), reverse=reverse)
+        
+        # Apply limit if specified
+        if limit is not None and limit < len(all_results):
+            all_results = all_results[:limit]
+        
+        return all_results
+
 
     # Document operations
     def get_document(self, collection_name: str, document_id: str) -> Optional[Dict[str, Any]]:

@@ -6,11 +6,16 @@ const licences = [
         slug: 'pokemon',
         name: 'Pokémon',
         image: 'pokemon.png'
+    },
+    {
+        slug: 'one piece',
+        name: 'One Piece',
+        image: 'one_piece.jpeg'
     }
 ]
 </script>
 
-<div class="flex flex-col items-center justify-center h-full">
+<div class="flex flex-col items-center justify-center h-full gap-4">
 
     <h1 class="text-4xl font-bold m-6 text-white">Licences</h1>
 

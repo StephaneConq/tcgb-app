@@ -16,26 +16,64 @@
 
 	let cards = $state(get(cardsRead));
 	let loading = $state(false);
-
+	let cardIndex = $state(0);
 	// Local state for the inputs
 	let setId = $state(card.set_id || '');
 	let cardNumber = $state(card.card_number || '');
-	let selected = $state(true);
 
-	// update cards in store
-	const handleCheck = () => {
-		if (displaySet) return;
-		selected = !selected;
-		const newCards = cards.map((c: CardModel) => {
-			if (c.set_id === card.set_id && c.card_number === card.card_number) {
+	$effect(() => {
+		if (card.card_versions) {
+			card.selectedCard = card.card_versions[cardIndex];
+		} else {
+			card.selectedCard = card;
+		}
+		// Only initialize the selected state if it hasn't been set by user interaction
+		if (card.selected === undefined) {
+			card.selected = !!!card.selectedCard.count;
+		}
+		updateStoreCards();
+	});
+
+	const handleCardSwitch = (direction: 'previous' | 'next') => {
+		if (cardIndex === 0 && direction === 'previous') {
+			cardIndex = card.card_versions.length - 1;
+		} else if (cardIndex === card.card_versions.length - 1 && direction === 'next') {
+			cardIndex = 0;
+		} else {
+			if (direction === 'previous') {
+				cardIndex--;
+			} else if (direction === 'next') {
+				cardIndex++;
+			}
+		}
+
+		card.selectedCard = card.card_versions[cardIndex];
+		updateStoreCards();
+	};
+
+	const updateStoreCards = () => {
+		// Update the card in the cardsRead store
+		const updatedCards = get(cardsRead).map((c: CardModel) => {
+			if (c._id === card._id) {
 				return {
 					...c,
-					selected
+					selectedCard: card.selectedCard,
+					// Store the selected card index so we know which version to save
+					selectedCardIndex: cardIndex,
+					selected: card.selected
 				};
 			}
 			return c;
 		});
-		cardsRead.set(newCards);
+
+		cardsRead.set(updatedCards);
+	};
+
+	// update cards in store
+	const handleCheck = () => {
+		if (displaySet) return;
+		card.selected = !card.selected;
+		updateStoreCards();
 	};
 
 	const handleCardAdd = () => {
@@ -44,7 +82,7 @@
 			.then(
 				() => {
 					addToast('Carte ajoutée', 'success');
-					card.count = (card.count || 0) + 1;
+					card.selectedCard.count = (card.selectedCard.count || 0) + 1;
 				},
 				(error) => {
 					console.error('Error saving cards:', error);
@@ -64,7 +102,7 @@
 	};
 
 	const handleCardRemove = () => {
-		if (card.count === 1) {
+		if (card.selectedCard.count === 1) {
 			const res = confirm('Supprimer cette carte de la collection ?');
 			if (!res) return;
 		}
@@ -73,8 +111,8 @@
 			.then(
 				() => {
 					addToast('Carte supprimée', 'success');
-					card.count = (card.count || 0) - 1;
-					if (card.count === 0) {
+					card.selectedCard.count = (card.selectedCard.count || 0) - 1;
+					if (card.selectedCard.count === 0) {
 						card.selected = false;
 					}
 				},
@@ -147,113 +185,158 @@
 	};
 </script>
 
-<div class="card-container h-min {!selected && 'disabled'} {!displaySet && 'h-fit'}">
-	<button
-		class="card-image"
-		onclick={() => {
-			handleCheck();
-		}}
-	>
-		{#if card.card_img}
-			<img src={card.card_img} alt="Card illustration" />
-		{:else}
-			<div class="placeholder-image">No image available</div>
-		{/if}
-	</button>
-
-	<div class="card-details">
-		<div class="details-header">
+{#if card.selectedCard}
+	<section class="flex flex-col justify-center items-center gap-2">
+		{#if card.card_versions && card.card_versions.length > 1}
 			<button
-				class="toggle-button w-full flex flex-row justify-between items-center"
-				onclick={toggleInputs}
-				aria-label={showInputs ? 'Cacher' : 'Afficher'}
+				onclick={() => handleCardSwitch('previous')}
+				aria-label="Previous card version"
+				class="text-white text-2xl"
 			>
-				<h4 class="details-title">Détails</h4>
-				<span class="iconify" data-icon={showInputs ? 'mdi-chevron-up' : 'mdi-chevron-down'}></span>
+				<span class="iconify" data-icon="mdi-arrow-up-drop-circle"></span>
 			</button>
-		</div>
-
-		{#if showInputs}
-			<div class="input-group">
-				<label for="set">Set:</label>
-				<input
-					disabled={displaySet}
-					type="text"
-					id="set"
-					bind:value={setId}
-					onkeydown={handleParamChange}
-					placeholder="Card set"
-				/>
-			</div>
-
-			<div class="input-group">
-				<label for="number">Number:</label>
-				<input
-					disabled={displaySet}
-					type="text"
-					id="number"
-					bind:value={cardNumber}
-					onkeydown={handleParamChange}
-					placeholder="Card number"
-				/>
-			</div>
 		{/if}
-	</div>
-
-	{#if displaySet}
-		<div class="actions-container">
-			{#if loading}
-				<div class="actions flex flex-row justify-center items-center">
-					<LoadingSpinner />
-				</div>
-			{:else}
-				<div class="actions flex flex-row justify-between items-center">
-					{#if !card.count}
-						<button
-							onclick={handleCardAdd}
-							class="bg-[#2865a1] hover:bg-blue-700 text-white p-2 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200"
-						>
-							<span>Ajouter à la collection</span>
-						</button>
+		<div class="card-wrapper">
+			{#if card.selectedCard.count > 0 && !displaySet}
+				<img src="icons/sac-de-courses.svg" alt="Owned icon" class="owned-icon" />
+			{/if}
+			<div class="card-container glass-bg {!card.selected && !displaySet && 'disabled'}">
+				<button
+					class="card-image"
+					onclick={() => {
+						handleCheck();
+					}}
+				>
+					{#if card.selectedCard.card_img}
+						<img src={card.selectedCard.card_img} alt="Card illustration" />
 					{:else}
-						<button
-							onclick={handleCardRemove}
-							class="bg-red-500 hover:bg-red-800 text-white font-bold p-3 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200"
-							aria-label="remove from collection"
-						>
-							<span class="iconify" data-icon="mdi-minus"></span>
-						</button>
+						<div class="placeholder-image">No image available</div>
+					{/if}
+				</button>
 
-						<span class="text-center">{card.count}</span>
+				<div class="card-details">
+					<div class="details-header">
 						<button
-							onclick={handleCardAdd}
-							class="bg-[#2865a1] hover:bg-blue-700 text-white font-bold p-3 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200"
-							aria-label="add to collection"
+							class="toggle-button w-full flex flex-row justify-between items-center"
+							onclick={toggleInputs}
+							aria-label={showInputs ? 'Cacher' : 'Afficher'}
 						>
-							<span class="iconify" data-icon="mdi-plus"></span>
+							<h4 class="details-title text-white">Détails</h4>
+							<span class="iconify" data-icon={showInputs ? 'mdi-chevron-up' : 'mdi-chevron-down'}
+							></span>
 						</button>
+					</div>
+
+					{#if showInputs}
+						<div class="input-group">
+							<label for="set">Set:</label>
+							<input
+								class="text-white"
+								disabled={displaySet}
+								type="text"
+								id="set"
+								bind:value={setId}
+								onkeydown={handleParamChange}
+								placeholder="Card set"
+							/>
+						</div>
+
+						<div class="input-group">
+							<label for="number">Number:</label>
+							<input
+								class="text-white"
+								disabled={displaySet}
+								type="text"
+								id="number"
+								bind:value={cardNumber}
+								onkeydown={handleParamChange}
+								placeholder="Card number"
+							/>
+						</div>
 					{/if}
 				</div>
-			{/if}
+
+				<div class="actions-container flex-grow">
+					{#if displaySet}
+						{#if loading}
+							<div class="actions flex flex-row justify-center items-center">
+								<LoadingSpinner />
+							</div>
+						{:else}
+							<div class="actions flex flex-row justify-center items-center w-full gap-5">
+								{#if !card.selectedCard.count}
+									<button
+										onclick={handleCardAdd}
+										class="bg-[#2865a1] hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200"
+									>
+										<span>Ajouter</span>
+									</button>
+								{:else}
+									<button
+										onclick={handleCardRemove}
+										class="bg-red-500 hover:bg-red-800 text-white font-bold p-3 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200"
+										aria-label="remove from collection"
+									>
+										<span class="iconify" data-icon="mdi-minus"></span>
+									</button>
+
+									<span class="text-center text-white">{card.selectedCard.count}</span>
+									<button
+										onclick={handleCardAdd}
+										class="bg-[#2865a1] hover:bg-blue-700 text-white font-bold p-3 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200"
+										aria-label="add to collection"
+									>
+										<span class="iconify" data-icon="mdi-plus"></span>
+									</button>
+								{/if}
+							</div>
+						{/if}
+					{:else if loading}
+						<div class="actions flex flex-row justify-center items-center">
+							<LoadingSpinner />
+						</div>
+					{/if}
+				</div>
+			</div>
 		</div>
-	{:else if loading}
-		<div class="actions flex flex-row justify-center items-center">
-			<LoadingSpinner />
-		</div>
-	{/if}
-</div>
+
+		{#if card.card_versions && card.card_versions.length > 1}
+			<button
+				onclick={() => handleCardSwitch('next')}
+				aria-label="Next card version"
+				class="text-white text-2xl"
+			>
+				<span class="iconify" data-icon="mdi-arrow-down-drop-circle"></span>
+			</button>
+		{/if}
+	</section>
+{/if}
 
 <style>
 	.card-container {
-		border: 1px solid #ddd;
-		border-radius: 8px;
 		padding: 12px;
-		margin-bottom: 16px;
-		background-color: white;
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 		display: flex;
 		flex-direction: column;
 		gap: 10px;
+		width: 100%;
+		height: 100%; /* Make sure it takes full height */
+	}
+
+	/* Add this to your existing styles */
+	.card-wrapper {
+		position: relative;
+		width: 100%;
+		min-height: 350px;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.actions-container {
+		margin-top: auto; /* Push the actions to the bottom */
+		min-height: 40px; /* Reserve space even when actions aren't displayed */
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-end; /* Align content to the bottom */
 	}
 
 	.card-container.disabled {
@@ -279,7 +362,7 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		color: #666;
+		color: white;
 		border-radius: 4px;
 	}
 
@@ -297,7 +380,7 @@
 	label {
 		font-size: 0.8rem;
 		margin-bottom: 2px;
-		color: #555;
+		color: white;
 	}
 
 	input {
@@ -305,11 +388,6 @@
 		border: 1px solid #ddd;
 		border-radius: 4px;
 		font-size: 0.9rem;
-	}
-
-	.actions-container {
-		margin-top: auto; /* Push the actions to the bottom */
-		min-height: 40px; /* Reserve space even when actions aren't displayed */
 	}
 
 	/* Add these new styles */
@@ -324,19 +402,24 @@
 		font-size: 0.9rem;
 		font-weight: 600;
 		margin: 0;
-		color: #333;
 	}
 
 	.toggle-button {
 		background: none;
 		border: none;
 		cursor: pointer;
-		color: #555;
+		color: white;
 		padding: 4px;
 		border-radius: 4px;
 	}
 
-	.toggle-button:hover {
-		background-color: #f0f0f0;
+	.owned-icon {
+		position: absolute;
+		width: 40px;
+		height: 40px;
+		top: -15px;
+		right: -15px;
+		z-index: 10;
+		filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
 	}
 </style>

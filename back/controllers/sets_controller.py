@@ -73,9 +73,11 @@ def fetch_cards(series_id, user_email):
     user_card_refs = {
         card.get('card_ref').path: card.get('count') for card in user_cards
     }
-    
-    # Pre-compute card numbers as integers to avoid repeated conversion
-    card_numbers = {card.get('ref').path: int(card.get('card_number')) for card in collection_cards}
+    try:
+        # Pre-compute card numbers as integers to avoid repeated conversion
+        card_numbers = {card.get('ref').path: int(card.get('card_number')) for card in collection_cards}
+    except ValueError:
+        card_numbers = {card.get('ref').path: int(card.get('card_number', '-0').split('-')[1]) for card in collection_cards}
     
     # Process all cards at once with optimized lookup
     result = [

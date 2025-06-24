@@ -61,14 +61,14 @@
 		<div class="h-min flex flex-row justify-start items-center gap-3">
 			<button
 				onclick={() => handleSort('number')}
-				class="bg-[#2865a1] p-3 rounded-lg text-white font-bold"
+				class="glass-bg p-3 rounded-lg text-white font-bold"
 			>
 				<span class="mr-3">Numéro</span>
 				{currentSort.number === 'asc' ? '▼' : '▲'}
 			</button>
 		</div>
 
-		<div class="grid-container w-full grid grid-cols-2 gap-4 overflow-y-auto">
+		<div class="grid-container w-full grid grid-cols-2 gap-6 overflow-y-auto">
 			{#each cardsDisplay as c, i (c._id)}
 				<Card bind:card={cardsDisplay[i]} displaySet={true} />
 			{/each}

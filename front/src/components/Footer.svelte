@@ -5,13 +5,11 @@
 	import { goto } from '$app/navigation';
 
 	const currentCardsRead = $derived($cardsRead);
-
 </script>
-	
 
-<footer class="shadow-2xl w-[90vw] flex items-center justify-evenly py-3 bg-white rounded-4xl my-5">
+<footer class="glass-bg w-[90vw] flex items-center justify-evenly py-3 rounded-4xl my-5">
 	<button
-		onclick="{() => goto('/collections')}"
+		onclick={() => goto('/collections')}
 		aria-label="camera button"
 		class="size-12 text-xl shadow-2xl border flex shrink-0 items-center justify-center rounded-full bg-white text-[#2865a1]"
 	>

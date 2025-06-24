@@ -9,5 +9,14 @@ export default interface CardModel {
         product_id: string;
     }[];
     selected?: boolean;
+    selectedCard?: CardModel;
     int_number?: number;
+    card_versions?: {
+        "card_name": string;
+        "card_img": string;
+        "card_number": string;
+        "set_id": string;
+        "_id": string;
+        "ref": string;
+    }[];
 }

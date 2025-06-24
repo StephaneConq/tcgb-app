@@ -78,7 +78,11 @@
 				>
 					<img src={serie.serie_logo} alt="{serie.serie_name} logo" class="my-3" />
 					<p class="flex flex-row items-center justify-between gap-3">
-						<img src={serie.symbol_img} alt="{serie.symbol_img} logo" class="max-w-[60px]" />
+						{#if serie.symbol_img}
+							<img src={serie.symbol_img} alt="{serie.set_id} logo" class="max-w-[60px]" />
+						{:else}
+							<span class="text-xl font-black">{serie.set_id}</span>
+						{/if}
 						<span class="text-2xl font-bold text-blue-400 text-right">{serie.serie_name}</span>
 					</p>
 				</button>

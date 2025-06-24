@@ -6,6 +6,7 @@ from google.auth import default
 
 from config import CARD_DETECTION_PROMPT
 from models.card import Cards
+from services.firestore import FirestoreService
 
 _, project = default()
 
@@ -68,3 +69,40 @@ def generate(image: UploadFile) -> Cards:
     data = response.text
     return json.loads(data)
 
+
+def find_card_in_firestore(card_number, set_id, firestore_service = None, cache_series = {}):
+    if not firestore_service:
+        firestore_service = FirestoreService()
+        
+    
+    if set_id in cache_series:
+        set_doc = {
+            "_id": cache_series[set_id]
+        }
+    else:
+        set_doc = firestore_service.query_documents(
+            'series',
+            filters=[
+                ("set_id", "==", set_id)
+            ]
+        )
+        if not set_doc:
+            print('set not')
+            return None, cache_series
+        
+        set_doc = set_doc[0]
+        cache_series[set_id] = set_doc.get('_id')
+    
+    card_data = firestore_service.query_sub_collection(
+        "series",
+        set_doc.get('_id'),
+        "cards",
+        filters=[
+            ("card_number", "==", card_number)
+        ]
+    )
+    if not card_data:
+        print("card not found")
+        return None, cache_series
+    
+    return card_data, cache_series

@@ -9,7 +9,10 @@
 
 	function handleSave() {
 		loading = true;
-		saveCards(get(cardsRead).filter((c) => c.selected))
+
+		saveCards(
+			get(cardsRead).filter((c) => c.selected).map((c) => c.selectedCard)
+		)
 			.then(
 				() => {
 					addToast('Cards saved!', 'success');
@@ -29,9 +32,9 @@
 	<div class="animate-spin rounded-full h-10 w-10 border-b-2 border-[#2865a1]"></div>
 {:else}
 	<button
-		aria-label="camera button"
+		aria-label="save button"
 		onclick={handleSave}
-		class="size-12 text-xl shadow-2xl border flex shrink-0 items-center justify-center rounded-full bg-[#2865a1] text-white"
+		class="size-12 text-xl shadow-2xl flex shrink-0 items-center justify-center rounded-full glass-bg text-white"
 	>
 		<span class="iconify" data-icon="mdi-content-save"></span>
 	</button>

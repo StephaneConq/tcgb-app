@@ -51,7 +51,7 @@
 	{:else}
 		<button
 			onclick={handleScan}
-			class="bg-[#2865a1] hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center gap-2"
+			class="glass-bg text-white font-bold py-3 px-8 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center gap-2"
 		>
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
