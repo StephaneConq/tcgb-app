@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Body
 from controllers.collection_controller import update_cards_in_collection, delete_card_from_collection
 from services.auth import get_current_user_email
 
 router = APIRouter()
 
 @router.patch('')
-async def update_collection(body: dict, email: str = Depends(get_current_user_email)):
+async def update_collection(body: dict = Body(...), email: str = Depends(get_current_user_email)):
     """
     Route to update a document in a collection
     """

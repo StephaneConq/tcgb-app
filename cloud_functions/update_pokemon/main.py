@@ -1,9 +1,12 @@
 import os
+import re
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
 from services.firestore import FirestoreService
 from functions_framework import http
+
+from services.helpers import extract_product_id
 
 
 def get_all_sets_pokemon():
@@ -52,18 +55,19 @@ def get_cards(serie):
                      {
                          'class': 'd-flex align-items-center d-none d-lg-block justify-content-lg-start'
                      }
-                    )
+                     )
     if date:
         date_text = date.text.strip()
         try:
             # Assuming the date format is something like "DD Month YYYY"
             # Adjust the format string to match your actual date format
             parsed_date = datetime.strptime(date_text, "%d/%m/%Y")
-            serie['date'] = parsed_date  # Firestore will convert this to a timestamp
+            # Firestore will convert this to a timestamp
+            serie['date'] = parsed_date
         except ValueError:
             # Fallback if parsing fails
             serie['date'] = date_text
-            
+
     cards_soup = soup.find_all('img', {'class': 'img-fluid br-10 dark-shadow'})
     cards = []
 
@@ -84,6 +88,7 @@ def get_cards(serie):
         })
     return serie, cards
 
+
 @http
 def main(request):
     firestore_service = FirestoreService()
@@ -98,6 +103,7 @@ def main(request):
                 ('licence', '==', serie.get('licence'))
             ]
         )
+
         if not existing_serie:
             serie, cards = get_cards(serie)
 
@@ -118,3 +124,67 @@ def main(request):
         print(f"{i + 1}/{len(series)}: {serie} done")
 
     return "Series created"
+
+
+@http
+def update_prices(request=None):
+    firestore_service = FirestoreService()
+    sets = firestore_service.query_documents('series')
+
+    for set in sets:
+        cards = firestore_service.query_sub_collection(
+            'series',
+            set.get('_id'),
+            'cards'
+        )
+
+        for card in cards:
+            r = requests.post(f"https://mp-search-api.tcgplayer.com/v1/search/request?q={card.get('set_id')}+{sanitize_card_name(card.get('card_name'))}+{card.get('card_number')}&isList=false&mpfev=3857",
+                              data={
+                "algorithm": "sales_dismax",
+                "from": 0,
+                "size": 24,
+                "filters": {
+                    "term": {},
+                    "range": {},
+                    "match": {}
+                },
+                "listingSearch": {
+                    "context": {
+                        "cart": {}
+                    },
+                    "filters": {
+                        "term": {
+                            "sellerStatus": "Live",
+                            "channelId": 0
+                        },
+                        "range": {
+                            "quantity": {
+                                "gte": 1
+                            }
+                        },
+                        "exclude": {
+                            "channelExclusion": 0
+                        }
+                    }
+                },
+                "context": {
+                    "cart": {},
+                    "shippingCountry": "FR",
+                    "userProfile": {}
+                },
+                "settings": {
+                    "useFuzzySearch": True,
+                    "didYouMean": {}
+                },
+                "sort": {}
+            })
+            res = r.json()
+            print(res)
+            pass
+
+
+def sanitize_card_name(name):
+    return name.replace('—', '').strip()
+
+update_prices()

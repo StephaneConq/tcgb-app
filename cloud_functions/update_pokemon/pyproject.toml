@@ -8,5 +8,6 @@ dependencies = [
     "beautifulsoup4>=4.13.4",
     "functions-framework>=3.8.3",
     "google-cloud-firestore>=2.21.0",
+    "pokemontcgsdk>=3.4.0",
     "requests>=2.32.4",
 ]

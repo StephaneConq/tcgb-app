@@ -25,7 +25,7 @@ def generate(image: UploadFile) -> Cards:
     )
     si_text1 = CARD_DETECTION_PROMPT
 
-    model = "gemini-2.5-pro"
+    model = "gemini-2.5-flash"
     contents = [
         types.Content(
             role="user",

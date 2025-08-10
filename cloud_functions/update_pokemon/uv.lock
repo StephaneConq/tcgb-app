@@ -115,6 +115,15 @@ wheels = [
 ]
 
 [[package]]
+name = "dacite"
+version = "1.9.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/55/a0/7ca79796e799a3e782045d29bf052b5cde7439a2bbb17f15ff44f7aacc63/dacite-1.9.2.tar.gz", hash = "sha256:6ccc3b299727c7aa17582f0021f6ae14d5de47c7227932c47fec4cdfefd26f09", size = 22420, upload-time = "2025-02-05T09:27:29.757Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/94/35/386550fd60316d1e37eccdda609b074113298f23cef5bddb2049823fe666/dacite-1.9.2-py3-none-any.whl", hash = "sha256:053f7c3f5128ca2e9aceb66892b1a3c8936d02c686e707bee96e19deef4bc4a0", size = 16600, upload-time = "2025-02-05T09:27:24.345Z" },
+]
+
+[[package]]
 name = "deprecation"
 version = "2.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -369,6 +378,18 @@ wheels = [
 ]
 
 [[package]]
+name = "pokemontcgsdk"
+version = "3.4.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "dacite" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/0f/0b/0830c8274aee7cbb2468bd6c174e0d470878ee7654d88cb8f831fa8e18ea/pokemontcgsdk-3.4.0.tar.gz", hash = "sha256:5ebc6a0f5fae14535ef30ab39d6dd55ae0d88b1cdb85bc02ad883900fc1d5551", size = 8461, upload-time = "2021-12-21T23:57:18.095Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c7/04/a65b091b27434908a0dff317021b45dc08e8133bf635940c53e2936501cb/pokemontcgsdk-3.4.0-py3-none-any.whl", hash = "sha256:50508e6964ce76909d9def3ed5d72eb5a3ba9effb60186d50ec29d3e53dda56c", size = 13744, upload-time = "2021-12-21T23:57:16.889Z" },
+]
+
+[[package]]
 name = "proto-plus"
 version = "1.26.1"
 source = { registry = "https://pypi.org/simple" }
@@ -468,6 +489,7 @@ dependencies = [
     { name = "beautifulsoup4" },
     { name = "functions-framework" },
     { name = "google-cloud-firestore" },
+    { name = "pokemontcgsdk" },
     { name = "requests" },
 ]
 
@@ -476,6 +498,7 @@ requires-dist = [
     { name = "beautifulsoup4", specifier = ">=4.13.4" },
     { name = "functions-framework", specifier = ">=3.8.3" },
     { name = "google-cloud-firestore", specifier = ">=2.21.0" },
+    { name = "pokemontcgsdk", specifier = ">=3.4.0" },
     { name = "requests", specifier = ">=2.32.4" },
 ]
 
