@@ -1,6 +1,7 @@
 <script>
     import { api } from '$lib/api';
 	import Card from '$lib/components/Card.svelte';
+    import OtherItem from '$lib/components/OtherItem.svelte';
     
     let imageFile = $state(null);
     let imagePreview = $state(null);
@@ -8,6 +9,7 @@
     let isUploading = $state(false);
     let fileInputRef;
     let cards = $state([]);
+    let otherItems = $state([]);
 
     // Handle file selection
     function handleFileSelect(event) {
@@ -50,6 +52,7 @@
             // imageFile = null;
             // imagePreview = null;
             cards = result.cards;
+            otherItems = result.other_items;
             
         } catch (err) {
             console.error('Upload failed:', err);
@@ -131,6 +134,21 @@
                         </section>
                     {/each}
                 {/if}
+                {#if !card.card_versions}
+                    <section class="flex w-[50%] p-2">
+                        <Card card={card} />
+                    </section>
+                {/if}
+            {/each}
+        </section>
+    {/if}
+
+    {#if otherItems.length > 0}
+        <section class="flex flex-wrap">
+            {#each otherItems as item}
+                <section class="flex w-[50%] p-2">
+                    <OtherItem item={item} />
+                </section>
             {/each}
         </section>
     {/if}

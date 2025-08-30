@@ -14,8 +14,8 @@
 			<li aria-current={page.url.pathname.startsWith('/tcg') ? 'page' : undefined}>
 				<a href="/tcg">TCG</a>
 			</li>
-			<li aria-current={page.url.pathname === '/nanoblocks' ? 'page' : undefined}>
-				<a href="/nanoblocks">Nanoblocks</a>
+			<li aria-current={page.url.pathname === '/other' ? 'page' : undefined}>
+				<a href="/other">Autres</a>
 			</li>
 		</ul>
 	</nav>
